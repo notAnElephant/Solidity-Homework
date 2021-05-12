@@ -1,0 +1,66 @@
+Blockchain HF1 - Safe crossing of autonomous cars
+using Ethereum Solidity
+by Németh Ágoston, Raisz Olivér
+2021. 05. 12.
+
+- CONTENT --------------------------------------
+
+I. Design goals
+II. Implementation skeleton
+III. API calls
+IV. Testing
+V. iszlát
+
+- DESIGN GOALS ---------------------------------
+
+- IMPLEMENTATION SKELETON ----------------------
+
+Authority:
+- Can issue new crossings
+- Trains and cars can request clearance
+
+Crossing:
+- Keeps track of occupied lanes
+
+Car:
+- Can ask for crossing permission
+
+Train:
+- Can ask for crossing permission
+- Can explicitly lock the crossing
+
+- API CALLS ------------------------------------
+
+CAR:
+- requestPassing(int laneID);
+    - returns: CrossingState (LOCKED / FREE_TO_CROSS)
+TRAIN:
+- requestCrossingLock(int crossingID)
+
+- TESTING --------------------------------------
+
+------------------------------------------------
+
+
+- FUNCTION TO IMPLEMENT ------------------------
+
+
+
+- infrastructure must periodically signal FREE_TO_CROSS
+
+# vehicles waiting must request permission
+# vehices passed must release their permission
+- schedule: if not, their identity must be recorded - record their address
+
+# trains request the crossing to LOCK
+# if the intersection is occupied, LOCK_REQUESTED
+- trains release the request when passed
+- if the train can't get permission in t time, the train halts
+- if the crossing is being locked by another train, the train halts
+------------------------------------------------
+
+o	Written documentation of 
+	the design decisions you took, 
+	the API of the smart contract, 
+	the important implementation details (if any), 
+	the definition and implementation of test cases.
