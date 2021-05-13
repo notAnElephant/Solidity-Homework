@@ -6,7 +6,7 @@ contract AutonomousCrossing {
     // ####### AUTHORITY ##################################################
 
     address public authority;
-    uint256 validity_period = 15 seconds;
+    uint256 validity_period = 15 days;
 
     /*constructor() {
         authority = msg.sender;
@@ -14,6 +14,10 @@ contract AutonomousCrossing {
     
     constructor(address admin) {
         authority = admin; 
+    }
+
+    function getAuthority() public view returns(address) {
+        return authority;
     }
     
     modifier isAdmin() {
@@ -57,7 +61,6 @@ contract AutonomousCrossing {
         uint8 cars_per_lane; // Allowed cars per lane
 
         uint8[] lanes;
-
     }
 
     struct Crossing {
@@ -73,7 +76,7 @@ contract AutonomousCrossing {
     }
 
     mapping (address=>Crossing) public crossings; // Stores addresses of the crossings.
-    mapping (address=>Lanes) internal crossing_lanes; // Stores lane data for crossing addresses.
+    mapping (address=>Lanes) public crossing_lanes; // Stores lane data for crossing addresses.
 
     modifier isCrossing() {
         require(crossings[msg.sender].isSet, "Only crossings can perform this action.");
@@ -107,14 +110,15 @@ contract AutonomousCrossing {
         l.isSet = true;
 
         c.train_lock = address(0);
-        l.cars_per_lane = cars_per_lane;
-        l.lane_num = lanes;
-        c.time_to_pass = time_to_pass;
-
         c.state = CrossingState.FREE;
         c.freeValidity = block.timestamp + validity_period;
-        
+        c.time_to_pass = time_to_pass;
+
+        l.cars_per_lane = cars_per_lane;
+        l.lane_num = lanes;
+
         crossings[c.id] = c;
+        crossing_lanes[c.id] = l;
         
     }
     
@@ -145,7 +149,7 @@ contract AutonomousCrossing {
         bool isSet;
     }
     
-    mapping (address=>Train) internal trains;
+    mapping (address=>Train) public trains;
     
     function RegisterTrain(address id) public isAdmin {
         
@@ -197,6 +201,10 @@ contract AutonomousCrossing {
     mapping (address=>uint16) internal tickets;
 
     function RegisterCar() public {
+        
+        require(!cars[msg.sender].isSet, "Already registered as a car.");
+        require(!trains[msg.sender].isSet, "Already registered as a train.");
+        require(!crossings[msg.sender].isSet, "Already registered as a crossing.");
         
         Car memory c;
         
