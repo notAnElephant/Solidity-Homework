@@ -8,7 +8,7 @@ contract AutonomousCrossing {
     address private authority;
     uint256 validity_period = 15 seconds;
 
-    constructor() public {
+    constructor() {
         authority = msg.sender;
     }
     
@@ -34,51 +34,57 @@ contract AutonomousCrossing {
         // - check_if_pass_released gedáppáá
 
     }
-    
-    // ####### CROSSING ##################################################
+
+    // ####### CROSSING + LANES ##################################################
 
     /**
         Defines possible states of the crossing
      */
-    enum CrossingTrainState {
+    enum CrossingState {
         LOCKED, // Noone is able to cross, until the crossing train signals to have left
         FREE, // Cars are allowed to cross, if the crossing is not filled
         LOCK_REQUESTED // No more cars are granted permission to cross
+    }
+    
+    struct Lanes {
+        address id;
+        bool isSet;
+        uint8 lane_num; // Number of lanes in the crossing
+        uint8 cars_per_lane; // Allowed cars per lane
+
+        uint8[] lanes;
+
     }
 
     struct Crossing {
         address id;
         bool isSet;
 
-        CrossingTrainState state;
-
+        CrossingState state;
+        
         address train_lock; // Current train crossing
-        uint8 lanes; // Number of lanes in the crossing
-        uint8 cars_per_lane; // Allowed cars per lane
         uint16 time_to_pass; // Allowed maximum pass validity
 
         uint256 freeValidity;
-
-        mapping(uint8=>uint8) carsInLanes;
-
     }
 
-    modifier isCrossing(address sender) {
-        require(crossings[sender].isSet, "Only crossings can perform this action.");
-        _;
-    }
+    mapping (address=>Crossing) public crossings; // Stores addresses of the crossings.
+    mapping (address=>Lanes) public crossing_lanes; // Stores lane data for crossing addresses.
 
     modifier isCrossing() {
-        isCrossing(msg.sender);
+        require(crossings[msg.sender].isSet, "Only crossings can perform this action.");
         _;
     }
 
-    mapping (address=>Crossing) crossings;
+    modifier assumeCrossing(address cross) {
+        require(crossings[cross].isSet, "Not a crossing.");
+        _;
+    }
 
     function IsCrossingFree(address crossing) public view returns(bool) {
 
-        for(uint8 i = 0; i < crossings[crossing].lanes; i++) {
-            if(crossings[crossing].carsInLanes[i] != 0) return false;
+        for(uint8 i = 0; i < crossing_lanes[crossing].lane_num; i++) {
+            if(crossing_lanes[crossing].lanes[i] != 0) return false;
         }
 
         return true;
@@ -89,17 +95,20 @@ contract AutonomousCrossing {
     public isAdmin {
         
         Crossing memory c;
+        Lanes memory l;
         
         c.id = id;
+        l.id = id;
         c.isSet = true;
-        
+        l.isSet = true;
+
         c.train_lock = address(0);
-        c.cars_per_lane = cars_per_lane;
-        c.lanes = lanes;
+        l.cars_per_lane = cars_per_lane;
+        l.lane_num = lanes;
         c.time_to_pass = time_to_pass;
 
-        c.state = CrossingTrainState.FREE;
-        c.freeValidity = now + validity_period;
+        c.state = CrossingState.FREE;
+        c.freeValidity = block.timestamp + validity_period;
         
         crossings[c.id] = c;
         
@@ -116,14 +125,14 @@ contract AutonomousCrossing {
 
         Crossing c = crossings[crossing];
 
-        if(c.state == CrossingTrainState.LOCKED) {
+        if(c.state == CrossingState.LOCKED) {
             return false;
-        } else if(c.state == CrossingTrainState.FREE) {
-            c.state = CrossingTrainState.LOCK_REQUESTED;
+        } else if(c.state == CrossingState.FREE) {
+            c.state = CrossingState.LOCK_REQUESTED;
             c.train_lock = msg.sender;
             return true;
         
-        } else if(c.state == CrossingTrainState.LOCK_REQUESTED) {
+        } else if(c.state == CrossingState.LOCK_REQUESTED) {
 
         }
 
@@ -150,9 +159,9 @@ contract AutonomousCrossing {
         _;
     }
     
-    function LockCrossing(address crossing) public isTrain isCrossing(crossing) returns(bool) {
+    function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(bool) {
         
-        if(!crossings[crossing].train_lock.isSet) return false;
+        if(crossings[crossing].train_lock != address(0)) return false;
         crossings[crossing].train_lock = msg.sender;
 
         if(IsCrossingFree(crossing)) {
@@ -165,7 +174,7 @@ contract AutonomousCrossing {
         return true;
     }
 
-    function ReleaseLock(address crossing) public isTrain isCrossing(crossing){
+    function ReleaseLock(address crossing) public isTrain assumeCrossing(crossing){
         
 
 
@@ -213,13 +222,13 @@ contract AutonomousCrossing {
         require(cr.isSet, "Invalid request - not a crossing");
         require(car.passValidity == 0, "You have an open permission. Close it first.");
         require(cr.state == CrossingState.FREE, "Crossing is not permitted at the moment.");
-        require(now <= cr.freeValidity, "WARN: Validity of free crossing expired. ASSUMING LOCKED.");
-        require(lane < cr.lanes, "Invalid lane.");
-        require(cr.carsInLanes[lane] < cr.cars_per_lane, "Lane is full. Try again later! :)");
+        require(block.timestamp <= cr.freeValidity, "WARN: Validity of free crossing expired. ASSUMING LOCKED.");
+        require(lane < crossing_lanes[crossing].lane_num, "Invalid lane.");
+        require(crossing_lanes[crossing].lanes[lane] < crossing_lanes[crossing].cars_per_lane, "Lane is full. Try again later! :)");
         
-        car.crossing.carsInLanes[lane]++;
+        crossing_lanes[crossing].lanes[lane]++;
         
-        car.passValidity = now + cr.time_to_pass;
+        car.passValidity = block.timestamp + cr.time_to_pass;
 
         car.lane = lane;
         car.crossing = cr;
@@ -231,10 +240,9 @@ contract AutonomousCrossing {
     function ReleasePass() public isCar {
 
         require(cars[msg.sender].passValidity != 0, "You have no valid pass at the moment.");
-        Crossing storage cross = cars[msg.sender].crossing;
-        require(cars[msg.sender].crossing.carsInLanes[cars[msg.sender].lane] > 0, "W h a t");
+        require(crossing_lanes[cars[msg.sender].crossing.id].lanes[cars[msg.sender].lane] > 0, "W h a t");
 
-        cars[msg.sender].crossing.carsInLanes[cars[msg.sender].lane]--;
+        crossing_lanes[cars[msg.sender].crossing.id].lanes[cars[msg.sender].lane]--;
         cars[msg.sender].passValidity = 0;
 
     }
