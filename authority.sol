@@ -5,11 +5,15 @@ contract AutonomousCrossing {
 
     // ####### AUTHORITY ##################################################
 
-    address private authority;
+    address public authority;
     uint256 validity_period = 15 seconds;
 
-    constructor() {
+    /*constructor() {
         authority = msg.sender;
+    }*/
+    
+    constructor(address admin) {
+        authority = admin; 
     }
     
     modifier isAdmin() {
@@ -69,7 +73,7 @@ contract AutonomousCrossing {
     }
 
     mapping (address=>Crossing) public crossings; // Stores addresses of the crossings.
-    mapping (address=>Lanes) public crossing_lanes; // Stores lane data for crossing addresses.
+    mapping (address=>Lanes) internal crossing_lanes; // Stores lane data for crossing addresses.
 
     modifier isCrossing() {
         require(crossings[msg.sender].isSet, "Only crossings can perform this action.");
@@ -81,7 +85,7 @@ contract AutonomousCrossing {
         _;
     }
 
-    function IsCrossingFree(address crossing) public view returns(bool) {
+    function IsCrossingFree(address crossing) internal view returns(bool) {
 
         for(uint8 i = 0; i < crossing_lanes[crossing].lane_num; i++) {
             if(crossing_lanes[crossing].lanes[i] != 0) return false;
@@ -114,10 +118,6 @@ contract AutonomousCrossing {
         
     }
     
-    function TestCrossing() public isCrossing view returns(bool) {
-        return true;
-    }
-    
 
 /*
     function LockRequest(address crossing) public returns(bool) isTrain {    
@@ -145,7 +145,7 @@ contract AutonomousCrossing {
         bool isSet;
     }
     
-    mapping (address=>Train) trains;
+    mapping (address=>Train) internal trains;
     
     function RegisterTrain(address id) public isAdmin {
         
@@ -194,7 +194,7 @@ contract AutonomousCrossing {
     
     mapping (address=>Car) cars;
 
-    mapping (address=>uint16) tickets;
+    mapping (address=>uint16) internal tickets;
 
     function RegisterCar() public {
         
@@ -247,7 +247,7 @@ contract AutonomousCrossing {
 
     }
 
-    function CheckIfPassIsReleased() public isCar {
+    function CheckIfPassIsReleased() internal isCar {
         if(cars[msg.sender].passValidity != 0) //the car still owns their pass, which is considered illegal
         {
             // Do you know why I pulled you over, sir?
