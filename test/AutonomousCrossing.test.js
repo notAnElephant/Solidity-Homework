@@ -63,7 +63,7 @@ contract("AutonomousCrossing", (accounts) => {
       AC.RegisterCar({from: car1});
 
       console.log("VALUE OF AC.cars:");
-      console.log(AC.cars);
+      console.log(await AC.cars(car1));
 
       assert.isDefined(AC.cars[car1]); // Elvileg definiálva kéne, hogy legyen.
       assert.isDefined(AC.cars[car1].isSet); // Ez a két sor meg már
