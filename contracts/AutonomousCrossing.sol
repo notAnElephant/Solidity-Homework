@@ -198,9 +198,9 @@ contract AutonomousCrossing {
 
     }
     
-    mapping (address=>Car) cars;
+    mapping (address=>Car) public cars;
 
-    mapping (address=>uint16) internal tickets;
+    mapping (address=>uint16) public tickets;
 
     function RegisterCar() public {
         
