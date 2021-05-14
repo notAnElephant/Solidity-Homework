@@ -8,7 +8,7 @@ contract AutonomousCrossing {
     address public authority;
     uint256 validity_period = 15 days;
 
-    constructor() {
+    constructor() public {
         authority = msg.sender;
     }
     
