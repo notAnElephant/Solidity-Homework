@@ -1,4 +1,5 @@
 pragma solidity >=0.5.1;
+pragma experimental ABIEncoderV2;
 // SPDX-License-Identifier: UNLICENSED
 
 contract AutonomousCrossing {
@@ -220,9 +221,8 @@ contract AutonomousCrossing {
 
     }
     
-    mapping (address=>Car) cars;
-
-    mapping (address=>uint16) internal tickets;
+    mapping (address=>Car) public cars;
+    mapping (address=>uint16) public tickets;
 
     function RegisterCar() public {
         

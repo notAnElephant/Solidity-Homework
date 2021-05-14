@@ -57,11 +57,52 @@ contract("AutonomousCrossing", (accounts) => {
   describe("Registrations", async () => {
 
     it("registered car", async () => {
-      assert.isFalse(AC.cars[car1].isSet);
+
+      assert.isUndefined(AC.cars[car1]);
+
       AC.RegisterCar({from: car1});
-      assert.isTrue(AC.cars[car1].isSet);
+
+      console.log("VALUE OF AC.cars:");
+      console.log(AC.cars);
+
+      assert.isDefined(AC.cars[car1]); // Elvileg definiálva kéne, hogy legyen.
+      assert.isDefined(AC.cars[car1].isSet); // Ez a két sor meg már
+      assert.isTrue(AC.cars[car1].isSet);    // nyilván nem fog menni
+
+    });
+
+    it("registered crossing", async () => {
+      assert.isUndefined(AC.crossings[crossing]);
+      AC.RegisterCrossing(crossing, 3, 2, 3600, {from: admin});
+    });
+
+    it("registered train", async () => {
+      assert.isUndefined(AC.trains[train1]);
+      AC.RegisterTrain(train1, {from: admin});
     });
 
   });
 
+  describe("Permission tests", async () => {
+    it("car permissions", async () => {
+    });
+
+  });
+
+  describe("Car mechanics", async () => {
+    it("car mech 1", async () => {
+    });
+
+  });
+
+  describe("Train mechanics", async () => {
+    it("train mech 1", async () => {
+    });
+  });
+
+  describe("Combined tests", async () => {
+    it("combined 1", async () => {
+    });
+  });
+  
 });
