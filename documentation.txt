@@ -50,13 +50,14 @@ TRAIN:
 
 # vehicles waiting must request permission
 # vehices passed must release their permission
-- schedule: if not, their identity must be recorded - record their address
+- schedule: # if not, their identity must be recorded - record their address
 
 # trains request the crossing to LOCK
 # if the intersection is occupied, LOCK_REQUESTED
-- trains release the request when passed
+# trains release the request when passed
 - if the train can't get permission in t time, the train halts
-- if the crossing is being locked by another train, the train halts
+# if the crossing is being locked by another train, the train halts 
+                                <-- a crossing belongs to one track
 ------------------------------------------------
 
 o	Written documentation of 
