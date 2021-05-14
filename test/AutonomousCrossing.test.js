@@ -58,16 +58,16 @@ contract("AutonomousCrossing", (accounts) => {
 
     it("registered car", async () => {
 
-      assert.isUndefined(AC.cars[car1]);
+      let debug_car = await AC.cars(car1);
+
+      assert.isFalse(debug_car.isSet);
 
       AC.RegisterCar({from: car1});
 
-      console.log("VALUE OF AC.cars:");
-      console.log(await AC.cars(car1));
+      debug_car = await AC.cars(car1);
 
-      assert.isDefined(AC.cars[car1]); // Elvileg definiálva kéne, hogy legyen.
-      assert.isDefined(AC.cars[car1].isSet); // Ez a két sor meg már
-      assert.isTrue(AC.cars[car1].isSet);    // nyilván nem fog menni
+      assert.isDefined(debug_car.isSet);
+      assert.isTrue(debug_car.isSet);
 
     });
 
