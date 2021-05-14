@@ -1,0 +1,22 @@
+{
+  "name": "solidity-homework-2",
+  "version": "1.0.0",
+  "description": "Blockchain technologiak HF1",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/notAnElephant/Solidity-Homework-2.git"
+  },
+  "author": "NAZ, ROI",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/notAnElephant/Solidity-Homework-2/issues"
+  },
+  "homepage": "https://github.com/notAnElephant/Solidity-Homework-2#readme"
+}
