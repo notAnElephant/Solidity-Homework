@@ -8,13 +8,13 @@ contract AutonomousCrossing {
     address public authority;
     uint256 validity_period = 15 days;
 
-    /*constructor() {
+    constructor() {
         authority = msg.sender;
-    }*/
-    
-    constructor(address admin) {
-        authority = admin; 
     }
+    
+    /*constructor(address admin) {
+        authority = admin; 
+    }*/
 
     function getAuthority() public view returns(address) {
         return authority;
@@ -116,6 +116,8 @@ contract AutonomousCrossing {
 
         l.cars_per_lane = cars_per_lane;
         l.lane_num = lanes;
+        
+        l.lanes = new uint8[](l.lane_num);
 
         crossings[c.id] = c;
         crossing_lanes[c.id] = l;
