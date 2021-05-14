@@ -7,6 +7,7 @@ contract AutonomousCrossing {
 
     address public authority;
     uint256 validity_period = 15 days;
+    uint256 train_halt_timeout = 30 seconds;
 
     constructor() public {
         authority = msg.sender;
@@ -70,9 +71,12 @@ contract AutonomousCrossing {
         CrossingState state;
         
         address train_lock; // Current train crossing
+        uint256 lock_request_time; // Lock request timestamp
+
         uint16 time_to_pass; // Allowed maximum pass validity
 
         uint256 freeValidity;
+
     }
 
     mapping (address=>Crossing) public crossings; // Stores addresses of the crossings.
@@ -164,25 +168,43 @@ contract AutonomousCrossing {
         require(trains[msg.sender].isSet, "Only trains can perform this action.");
         _;
     }
+
+    enum LockResponse {
+        ANOTHER_LOCK_IS_ACTIVE,
+        LOCK_SUCCESSFUL,
+        LOCK_REQUESTED,
+        HALT
+    }
     
-    function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(bool) {
+    function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(LockResponse) {
         
-        if(crossings[crossing].train_lock != address(0)) return false;
-        crossings[crossing].train_lock = msg.sender;
+        if(crossings[crossing].train_lock == address(0)) {
+            crossings[crossing].lock_request_time = block.timestamp;        
+            crossings[crossing].train_lock = msg.sender;
+        }
+
+        if(crossings[crossing].train_lock != msg.sender) {
+            return LockResponse.ANOTHER_LOCK_IS_ACTIVE;
+        }
 
         if(IsCrossingFree(crossing)) {
             crossings[crossing].state = CrossingState.LOCKED;
+            return LockResponse.LOCK_SUCCESSFUL;
+        } else if(block.timestamp < crossings[crossing].lock_request_time + train_halt_timeout) {
+            crossings[crossing].state = CrossingState.LOCK_REQUESTED;
+            return LockResponse.LOCK_REQUESTED;
         } else {
             crossings[crossing].state = CrossingState.LOCK_REQUESTED;
-                
+            return LockResponse.HALT;
         }
-
-        return true;
     }
 
-    function ReleaseLock(address crossing) public isTrain assumeCrossing(crossing){
-        
+    function ReleaseLock(address crossing) public isTrain assumeCrossing(crossing) {
 
+        require(crossings[crossing].train_lock == msg.sender, "Another train has the release permissions.");
+        crossings[crossing].train_lock = address(0);
+        crossings[crossing].lock_request_time = 0;
+        crossings[crossing].state = CrossingState.FREE;
 
     }
     
@@ -198,9 +220,9 @@ contract AutonomousCrossing {
 
     }
     
-    mapping (address=>Car) public cars;
+    mapping (address=>Car) cars;
 
-    mapping (address=>uint16) public tickets;
+    mapping (address=>uint16) internal tickets;
 
     function RegisterCar() public {
         
