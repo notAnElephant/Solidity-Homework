@@ -50,7 +50,7 @@ contract AutonomousCrossing {
     /**
         Defines possible states of the crossing
      */
-    enum CrossingState {
+    enum CrossingState  {
         LOCKED, // Noone is able to cross, until the crossing train signals to have left
         FREE, // Cars are allowed to cross, if the crossing is not filled
         LOCK_REQUESTED // No more cars are granted permission to cross
@@ -128,26 +128,6 @@ contract AutonomousCrossing {
         crossing_lanes[c.id] = l;
         
     }
-    
-
-/*
-    function LockRequest(address crossing) public returns(bool) isTrain {    
-        require(crossings[crossing].isSet, "The argument must be registered as a crossing");
-
-        Crossing c = crossings[crossing];
-
-        if(c.state == CrossingState.LOCKED) {
-            return false;
-        } else if(c.state == CrossingState.FREE) {
-            c.state = CrossingState.LOCK_REQUESTED;
-            c.train_lock = msg.sender;
-            return true;
-        
-        } else if(c.state == CrossingState.LOCK_REQUESTED) {
-
-        }
-
-    }*/
 
     // ####### TRAIN ##################################################
 
