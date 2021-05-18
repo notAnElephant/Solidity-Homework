@@ -10,6 +10,7 @@ contract AutonomousCrossing {
     uint256 validity_period = 15 days;
     uint256 train_halt_timeout = 30 seconds;
 
+    // // Ignore warning:
     constructor() public {
         authority = msg.sender;
     }
@@ -21,7 +22,7 @@ contract AutonomousCrossing {
     function getAuthority() public view returns(address) {
         return authority;
     }
-    
+
     modifier isAdmin() {
         
         require(msg.sender == authority, "You need admin permissions for this action.");

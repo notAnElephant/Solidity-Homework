@@ -4,35 +4,22 @@ const { assert } = require('chai');
 // Import utilities from Test Helpers
 const trassert = require('truffle-assertions');
 
-
+// Idk mit csinal, nem merem kitorolni
 /*module.exports = function(deployer) {
   deployer.deploy(AutonomousCrossing);
 };*/
 
-/*
-package.json
-
-Openzeppelin NPM-ről (testhelper, 
-Chai - assert
-
-const { assert } = require('chai')
-
-describe blokkosítja a teszteket
-
-Függvényekben +1 paraméter
-{from: accounts[n]}
 
 
-*/
+// Global enum constants
+const cr_state_LOCKED = 0;
+const cr_state_FREE = 1;
+const cr_state_LOCK_REQUESTED = 2;
 
-
-//contract->describe->it
-//
-
-// Lol lehetne payable módon adni ticketet a kocsiknak
-//const result 7 await [...]
-//const returnargument = result.logs[0].args.argumentwhatever;
-
+const lock_res_ANOTHER_LOCK_IS_ACTIVE = 0;
+const lock_res_LOCK_SUCCESSFUL = 1;
+const lock_res_LOCK_REQUESTED = 2;
+const lock_res_HALT = 3;
 
 contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
 
@@ -50,8 +37,18 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
 
   beforeEach(async () => {
   
-    AutonomousCrossing.new();
-    AC = await AutonomousCrossing.deployed();
+    AC = await AutonomousCrossing.new();
+    //AC = await AutonomousCrossing.deployed();
+
+    // Registering accounts
+    await AC.RegisterCar({from: car1});
+    await AC.RegisterCar({from: car2});
+    await AC.RegisterCar({from: car3});
+    
+    await AC.RegisterCrossing(crossing1, 3, 2, 3600, {from: admin});
+
+    await AC.RegisterTrain(train1, {from: admin});
+    await AC.RegisterTrain(train2, {from: admin});
 
   });
 
@@ -63,36 +60,40 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
 
   describe("Registrations", async () => {
 
-    it("registered car", async () => {
-      let finished_car = await AC.cars(car1);
+    regtest_car = accounts[8];
+    regtest_crossing = accounts[9];
+    regtest_train = accounts[10];
+
+    it("car registration", async () => {
+      let finished_car = await AC.cars(regtest_car);
       assert.isFalse(finished_car.isSet);
-      AC.RegisterCar({from: car1});
-      finished_car = await AC.cars(car1);
+      await AC.RegisterCar({from: regtest_car});
+      finished_car = await AC.cars(regtest_car);
       assert.isDefined(finished_car.isSet);
       assert.isTrue(finished_car.isSet, "the car should be set");
-      assert.equal(finished_car.id, car1, "the set address should be the same as the car's address");
+      assert.equal(finished_car.id, regtest_car, "the set address should be the same as the car's address");
       assert.equal(finished_car.passValidity, 0);
     });
 
-    it("registered crossing", async () => {
-      let finished_crossing = await AC.crossings(crossing1);
+    it("crossing registration", async () => {
+      let finished_crossing = await AC.crossings(regtest_crossing);
       assert.isFalse(finished_crossing.isSet);
-      AC.RegisterCrossing(crossing1, 3, 2, 3600, {from: admin});
-      finished_crossing = await AC.crossings(crossing1);
+      await AC.RegisterCrossing(regtest_crossing, 3, 2, 3600, {from: admin});
+      finished_crossing = await AC.crossings(regtest_crossing);
       assert.isTrue(finished_crossing.isSet, "the crossing should be set");
-      assert.equal(finished_crossing.state, 1 /* enum state FREE*/, "the crossing should be free");
-      assert.equal(finished_crossing.id, crossing1);
+      assert.equal(finished_crossing.state, cr_state_FREE, "the crossing should be free");
+      assert.equal(finished_crossing.id, regtest_crossing);
       assert.equal(finished_crossing.train_lock, 0);
     });
 
-    it("registered train", async () => {
-      let finished_train = await AC.trains(train1);
+    it("train registration", async () => {
+      let finished_train = await AC.trains(regtest_train);
       assert.isFalse(finished_train.isSet);
-      AC.RegisterTrain(train1, {from: admin});
-      finished_train = await AC.trains(train1);
+      await AC.RegisterTrain(regtest_train, {from: admin});
+      finished_train = await AC.trains(regtest_train);
       assert.isDefined(finished_train.isSet);
       assert.isTrue(finished_train.isSet, "the train should be set");
-      assert.equal(finished_train.id, train1, "the set address should  be the same as the train's address");
+      assert.equal(finished_train.id, regtest_train, "the set address should  be the same as the train's address");
     });
 
   });
@@ -118,21 +119,33 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
 
   });
 
-  describe("Car mechanics", async () => {
-    it("car mech 1", async () => {
-      
-    });
-  });
-
-  describe("Train mechanics", async () => {
-    it("train mech 1", async () => {
-      
-    });
-  });
-
   describe("Combined tests", async () => {
-    it("combined 1", async () => {
+    it("Pass request", async () => {
+
+      await AC.LockCrossing(crossing1, {from: train1});
+      let finished_crossing = await AC.crossings(crossing1);
+      assert.equal(finished_crossing.state, cr_state_LOCKED, "Crossing should be locked");
+
+      await AC.ReleaseLock(crossing1, {from: train1});
+
+      assert.equal(finished_crossing.state, cr_state_FREE, "Crossing should be free");
+
     });
+
+    it("Multiple cars", async () => {});
+    it("Multiple trains", async () => {});
+    it("Lock requested", async () => {});
+    it("Expired crossing permission", async () => {});
+    it("Ticket", async () => {});
+
+  });
+
+  
+  describe("Other tests", async () => {
+
+    it("Crossing free", async () => {});
+    it("Authority test", async () => {});
+
   });
   
 });
