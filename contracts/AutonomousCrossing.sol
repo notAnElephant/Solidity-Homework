@@ -94,7 +94,7 @@ contract AutonomousCrossing {
         _;
     }
 
-    function IsCrossingFree(address crossing) internal view returns(bool) {
+    function IsCrossingFree(address crossing) public view returns(bool) {
 
         for(uint8 i = 0; i < crossing_lanes[crossing].lane_num; i++) {
             if(crossing_lanes[crossing].lanes[i] != 0) return false;
@@ -158,7 +158,7 @@ contract AutonomousCrossing {
         HALT
     }
     
-    function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(LockResponse) {
+    function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(uint) {
         
         if(crossings[crossing].train_lock == address(0)) {
             crossings[crossing].lock_request_time = block.timestamp;        
@@ -166,18 +166,18 @@ contract AutonomousCrossing {
         }
 
         if(crossings[crossing].train_lock != msg.sender) {
-            return LockResponse.ANOTHER_LOCK_IS_ACTIVE;
+            return uint(LockResponse.ANOTHER_LOCK_IS_ACTIVE);
         }
 
         if(IsCrossingFree(crossing)) {
             crossings[crossing].state = CrossingState.LOCKED;
-            return LockResponse.LOCK_SUCCESSFUL;
+            return uint(LockResponse.LOCK_SUCCESSFUL);
         } else if(block.timestamp < crossings[crossing].lock_request_time + train_halt_timeout) {
             crossings[crossing].state = CrossingState.LOCK_REQUESTED;
-            return LockResponse.LOCK_REQUESTED;
+            return uint(LockResponse.LOCK_REQUESTED);
         } else {
             crossings[crossing].state = CrossingState.LOCK_REQUESTED;
-            return LockResponse.HALT;
+            return uint(LockResponse.HALT);
         }
     }
 
@@ -258,6 +258,16 @@ contract AutonomousCrossing {
         crossing_lanes[cars[msg.sender].crossing.id].lanes[cars[msg.sender].lane]--;
         cars[msg.sender].passValidity = 0;
 
+        address crossingid = cars[msg.sender].crossing.id;
+
+        if(IsCrossingFree(crossingid) && crossings[crossingid].state == CrossingState.LOCK_REQUESTED) {
+            crossings[crossingid].state = CrossingState.LOCKED;
+        }
+
+    }
+
+    function IsPassValid() public isCar view returns(bool) {
+        return block.timestamp < cars[msg.sender].passValidity;
     }
 
     function CheckIfPassIsReleased() internal isCar {
@@ -268,4 +278,15 @@ contract AutonomousCrossing {
         }
     }
 
+    function IsCar(address c) public view returns(bool) {
+        return cars[c].isSet;
+    }
+    
+    function IsTrain(address c) public view returns(bool){
+        return trains[c].isSet;
+    }
+
+    function IsCrossing(address c) public view returns(bool) {
+        return crossings[c].isSet;
+    }
 }

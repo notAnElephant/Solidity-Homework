@@ -4,6 +4,9 @@ const { assert } = require('chai');
 // Import utilities from Test Helpers
 const trassert = require('truffle-assertions');
 
+//const bignum = require('../lib/bignumber.js');
+
+
 // Idk mit csinal, nem merem kitorolni
 /*module.exports = function(deployer) {
   deployer.deploy(AutonomousCrossing);
@@ -50,8 +53,18 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
     await AC.RegisterTrain(train1, {from: admin});
     await AC.RegisterTrain(train2, {from: admin});
 
-  });
+    // Checking accounts
+    assert.isTrue(await AC.IsCar(car1));
+    assert.isTrue(await AC.IsCar(car2));
+    assert.isTrue(await AC.IsCar(car3));
+    
+    assert.isTrue(await AC.IsCrossing(crossing1));
+    
+    assert.isTrue(await AC.IsTrain(train1));
+    assert.isTrue(await AC.IsTrain(train2));
 
+  });
+/*
   describe("Testing truffle test environment", async () => {
     it("karigeri should be alkalmatlan.", async() => {
       assert.notEqual("Karigeri", "alkalmas");
@@ -72,7 +85,7 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
       assert.isDefined(finished_car.isSet);
       assert.isTrue(finished_car.isSet, "the car should be set");
       assert.equal(finished_car.id, regtest_car, "the set address should be the same as the car's address");
-      assert.equal(finished_car.passValidity, 0);
+      assert.equal(finished_car.passValidity, 0, "");
     });
 
     it("crossing registration", async () => {
@@ -117,10 +130,27 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
       
     });
 
-  });
+  });*/
 
   describe("Combined tests", async () => {
-    it("Pass request", async () => {
+    it("Pass request (free)", async () => {
+
+      let finished_car = await AC.cars(car1);
+      assert.isFalse(await AC.IsPassValid({from: car1}), "Pass is valid before request is made");
+      assert.equal(finished_car.passValidity, 0, "Pass is valid before request is made");
+
+      await AC.RequestPass(crossing1, 0, {from: car1});
+      finished_car = await AC.cars(car1);
+
+      assert.notEqual(finished_car.passValidity, 0, "Incorrect pass validity");
+
+      assert.isTrue(await AC.IsPassValid({from: car1}));
+      await AC.ReleasePass({from: car1});
+      assert.isFalse(await AC.IsPassValid({from: car1}));
+      
+    });
+
+    it("Pass request 2 (locked)", async() => {
 
       await AC.LockCrossing(crossing1, {from: train1});
       let finished_crossing = await AC.crossings(crossing1);
@@ -128,24 +158,112 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
 
       await AC.ReleaseLock(crossing1, {from: train1});
 
+      finished_crossing = await AC.crossings(crossing1);
       assert.equal(finished_crossing.state, cr_state_FREE, "Crossing should be free");
 
     });
 
-    it("Multiple cars", async () => {});
-    it("Multiple trains", async () => {});
-    it("Lock requested", async () => {});
-    it("Expired crossing permission", async () => {});
-    it("Ticket", async () => {});
+    it("Multiple pass requests", async () => {
+
+      await AC.RequestPass(crossing1, 0, {from: car1});
+      trassert.reverts(AC.RequestPass(crossing1, 0, {from: car1}));
+
+    });
+
+    it("Multiple cars", async () => {
+
+      // Two cars are taking up all the space in the crossing (line 0's limit)
+      await AC.RequestPass(crossing1, 0, {from: car1});
+      await AC.RequestPass(crossing1, 0, {from: car2});
+
+      // The third car should not be allowed to get a pass
+      trassert.reverts(AC.RequestPass(crossing1, 0, {from: car3}));
+
+      let finished_car = await AC.cars[car3];
+      assert.isFalse(await AC.IsPassValid({from: car3}));
+
+      // The first car exits the crossing, thus opening up space for the third one
+      await AC.ReleasePass({from: car1});
+
+      await AC.RequestPass(crossing1, 0, {from: car3});
+      assert.isTrue(await AC.IsPassValid({from: car3}));
+
+    });
+
+    /* TODO fix: solidity return type -> int
+
+    Olivér hozzátette: "Tudjunk már egy kibaszott számot visszaadni"
+    Ágoston: *felírja*
+    Olivér: "Most ezt felírod?"
+    Ágoston: "De most komolyan..."
+
+    it("Multiple trains", async () => {
+
+      await AC.LockCrossing(crossing1, {from: train1});
+      
+      let lock_response = await AC.LockCrossing(crossing1, {from: train2});
+      console.log(Number(lock_response));
+      
+      let bn = BigNumber(lock_response);
+      console.log("Pacal: " + bn);
+
+      assert.equal(Number(lock_response), lock_res_ANOTHER_LOCK_IS_ACTIVE,
+      "The second train should get an 'another lock is active' response");
+    });*/
+
+    it("Lock requested", async () => {
+      //vonatként lock requesting, hogy van ott kocsi
+    });
+
+    //kéne hozzá a scheduler
+    it("Halt", async () => {
+      //ha túl sokáig nem jó a lock, a vonatnak meg kell állnia
+    });
+    
+    //kéne hozzá a scheduler
+    it("Ticket", async () => {
+
+      //ha lejár a kocsi validityje, ticketet ad
+    });
 
   });
-
-  
+  /*
   describe("Other tests", async () => {
 
-    it("Crossing free", async () => {});
-    it("Authority test", async () => {});
+    it("Crossing free", async () => {
+      
+      let finished_crossing = await AC.crossings(crossing1);
 
-  });
+      assert.equal(finished_crossing.state, cr_state_FREE);
+      assert.equal(await AC.IsCrossingFree(crossing1), true, {from: admin});
+      assert.equal(await AC.IsCrossingFree(crossing1), true, {from: non_admin});
+      assert.equal(await AC.IsCrossingFree(crossing1), true, {from: car1});
+
+      await AC.RequestPass(crossing1, 0, {from: car1});
+      await AC.LockCrossing(crossing1, {from: train1});
+
+      finished_crossing = await AC.crossings(crossing1);
+
+      assert.equal(finished_crossing.state, cr_state_LOCK_REQUESTED);
+      assert.equal(await AC.IsCrossingFree(crossing1), false, {from: admin});
+      assert.equal(await AC.IsCrossingFree(crossing1), false, {from: non_admin});
+      assert.equal(await AC.IsCrossingFree(crossing1), false, {from: car1});
+
+      await AC.ReleasePass({from: car1});
+
+      finished_crossing = await AC.crossings(crossing1);
+
+      assert.equal(finished_crossing.state, cr_state_LOCKED);
+      assert.equal(await AC.IsCrossingFree(crossing1), true, {from: admin});
+      assert.equal(await AC.IsCrossingFree(crossing1), true, {from: non_admin});
+      assert.equal(await AC.IsCrossingFree(crossing1), true, {from: car1});
+
+    });
+
+    it("Authority test", async () => {
+      assert.equal(admin, await AC.getAuthority());
+    });
+
+  });*/
   
 });
