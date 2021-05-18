@@ -1,3 +1,17 @@
+/*
+
+  TODO
+
+  - schedule megoldása
+  - dokumentáció
+  - utolsó tesztek megírása
+  - többi TODO megoldása
+  - időpontfoglalás bemutatásra
+  - éjfél a határidő rip
+  - konzultáció kérése Kleiniktől
+
+*/
+
 const AutonomousCrossing = artifacts.require("AutonomousCrossing");
 const { assert } = require('chai');
 
