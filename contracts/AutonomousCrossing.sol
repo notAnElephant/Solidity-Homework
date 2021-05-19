@@ -158,7 +158,7 @@ contract AutonomousCrossing {
         HALT
     }
 
-    function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(uint) {
+    function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(uint8) {
 
         if(crossings[crossing].train_lock == address(0)) {
             crossings[crossing].lock_request_time = block.timestamp;        
@@ -166,18 +166,18 @@ contract AutonomousCrossing {
         }
 
         if(crossings[crossing].train_lock != msg.sender) {
-            return uint(LockResponse.ANOTHER_LOCK_IS_ACTIVE);
+            return uint8(LockResponse.ANOTHER_LOCK_IS_ACTIVE);
         }
 
         if(IsCrossingFree(crossing)) {
             crossings[crossing].state = CrossingState.LOCKED;
-            return uint(LockResponse.LOCK_SUCCESSFUL);
+            return uint8(LockResponse.LOCK_SUCCESSFUL);
         } else if(block.timestamp < crossings[crossing].lock_request_time + train_halt_timeout) {
             crossings[crossing].state = CrossingState.LOCK_REQUESTED;
-            return uint(LockResponse.LOCK_REQUESTED);
+            return uint8(LockResponse.LOCK_REQUESTED);
         } else {
             crossings[crossing].state = CrossingState.LOCK_REQUESTED;
-            return uint(LockResponse.HALT);
+            return uint8(LockResponse.HALT);
         }
     }
 

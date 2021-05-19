@@ -209,17 +209,18 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
     Olivér hozzátette: "Tudjunk már egy kibaszott számot visszaadni"
     Ágoston: *felírja*
     Olivér: "Most ezt felírod?"
-    Ágoston: "De most komolyan..."
-*/
+    Ágoston: "De most komolyan...
+    Bálint: 'Hold my beer..., it's done"
+    */
     it("Multiple trains", async () => {
 
       /*await AC.LockCrossing(crossing1, {from: train1});
       
-      let finished_lstate = await web3.utils.toBN(await AC.LockCrossing(crossing1, {from: train2}));
+      const finished_lstate = await AC.LockCrossing.call(crossing1, {from: train2});
       
       console.log("Pacal 1 " + finished_lstate);
 
-      assert.equal(finished_lstate, await web3.utils.toBN(lock_res_ANOTHER_LOCK_IS_ACTIVE),
+      assert.equal(Number(finished_lstate), lock_res_ANOTHER_LOCK_IS_ACTIVE,
       "The second train should get an 'another lock is active' response");
     */});
 
