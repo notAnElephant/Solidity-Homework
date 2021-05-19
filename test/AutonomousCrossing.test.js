@@ -209,8 +209,9 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
     Olivér hozzátette: "Tudjunk már egy kibaszott számot visszaadni"
     Ágoston: *felírja*
     Olivér: "Most ezt felírod?"
-    Ágoston: "De most komolyan..."
-*/
+    Ágoston: "De most komolyan...
+    Bálint: 'Hold my beer..., it's done"
+    */
     it("Multiple trains", async () => {
 
       await AC.LockCrossing(crossing1, {from: train1});
