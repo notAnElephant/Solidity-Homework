@@ -94,7 +94,7 @@ contract AutonomousCrossing {
         _;
     }
 
-    function IsCrossingFree(address crossing) public view returns(bool) {
+    function IsCrossingFree(address crossing) public assumeCrossing(crossing) view returns(bool) {
 
         for(uint8 i = 0; i < crossing_lanes[crossing].lane_num; i++) {
             if(crossing_lanes[crossing].lanes[i] != 0) return false;
