@@ -182,8 +182,6 @@ contract("AutonomousCrossing", async (accounts) => {
       await AC.LockCrossing(crossing1, {from: train1});
       
       const finished_lstate = await AC.LockCrossing.call(crossing1, {from: train2});
-      
-      console.log("Pacal 1 " + finished_lstate);
 
       assert.equal(Number(finished_lstate), lock_res_ANOTHER_LOCK_IS_ACTIVE,
       "The second train should get an 'another lock is active' response");
@@ -253,7 +251,5 @@ contract("AutonomousCrossing", async (accounts) => {
     it("Authority test", async () => {
       assert.equal(admin, await AC.getAuthority());
     });
-
   });
-  
 });
