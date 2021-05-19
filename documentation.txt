@@ -5,12 +5,12 @@ by Németh Ágoston, Raisz Olivér
 
 - CONTENT --------------------------------------
 
+FRISSÍTENI!
+
 I. Design goals
 II. Implementation skeleton
 III. API calls
 IV. Testing
-
-- DESIGN GOALS ---------------------------------
 
 - IMPLEMENTATION SKELETON ----------------------
 
@@ -23,10 +23,20 @@ Crossing:
 
 Car:
 - Can ask for crossing permission
+- Must release the given permission, otherwise a ticket must be paid
 
 Train:
 - Can ask for crossing permission
 - Can explicitly lock the crossing
+
+- DESIGN DECISIONS -----------------------------
+
+We implemented the task so that every participant (trains, cars, crossings) is an address on the network.
+Trains and crossings should be registered by the admin first (which is the address of the railway company).
+As the skeleton above implies, the cars can request crossing permission (sometimes referred to as pass). 
+If they don't return the given pass within a time frame, their address is stored and they must pay a penalty.
+Trains can request to lock a crossing, but only one train can lock a train at the same time. They must release this lock after 
+passing. 
 
 - API CALLS ------------------------------------
 
@@ -114,24 +124,17 @@ RegisterCar():
         
 RequestPass(address, int):
     Parameters:
-        - Address of the crossing.
-        - Line ID, in which the car wishes to enter
-        the crossing ahead.
+        - None.
     Requires:
-        - Only cars can perform this action.
-        - The specified address must be registered
-        as a crossing.
-        - The specified line of the crossing must
-        not have reached the maximum car capacity.
+        - Nothing.
     Returns:
-        - A timestamp until which the pass permission
-        is valid.
+        - Nothing.
         
 ReleasePass():
     Parameters:
         - None.
     Requires:
-        - Only cars can perform this action.
+        - Nothing.
     Returns:
         - Nothing.
         
@@ -141,7 +144,7 @@ IsPassValid():
     Requires:
         - Nothing.
     Returns:
-        - Boolean, whether the issuer car has a 
+        - Nothing.
         
 CheckIfPassIsReleased():
     Parameters:
@@ -212,11 +215,11 @@ We attempt to do things the given address is not allowed to, expecting an except
 
  Multiple trains:
  A second train tries to lock the crossing, after it has been locked by another train. 
- It should get the response 'another lock is active'.
+ The train should get the 'another lock is active' enum as a response.
 
  Lock requested:
  A train tries to lock the crossing while a car is in it (i.e. it has an active permission). 
- The train should g
+ The train should get the 'lock requested' enum as a response.
 
  Ticket:
  A car doesn't return it's pass, so a ticket is given (it's id is stored).
@@ -249,14 +252,16 @@ Authority test is a simple test, it just checks whether the admin address owns
                                 <-- a crossing belongs to one track
 ------------------------------------------------
 
+
+
 You are expected to submit (as a single zip file):
 
 o Written documentation of
     Ágoston - API
             - the important implementation details (if any), -->scheduling & usage
             
-    Olivér: - design decisions
-            - the definition and implementation of test cases.
+    Olivér: # design decisions
+            # the definition and implementation of test cases.
 
 o The smart contract in a compilable and deployable form, 
 with instructions to run the implemented test cases.
