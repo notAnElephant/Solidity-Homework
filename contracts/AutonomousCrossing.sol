@@ -157,9 +157,9 @@ contract AutonomousCrossing {
         LOCK_REQUESTED,
         HALT
     }
-    
+
     function LockCrossing(address crossing) public isTrain assumeCrossing(crossing) returns(uint) {
-        
+
         if(crossings[crossing].train_lock == address(0)) {
             crossings[crossing].lock_request_time = block.timestamp;        
             crossings[crossing].train_lock = msg.sender;

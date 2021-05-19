@@ -78,7 +78,7 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
     assert.isTrue(await AC.IsTrain(train2));
 
   });
-/*
+
   describe("Testing truffle test environment", async () => {
     it("karigeri should be alkalmatlan.", async() => {
       assert.notEqual("Karigeri", "alkalmas");
@@ -144,10 +144,10 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
       
     });
 
-  });*/
+  });
 
   describe("Combined tests", async () => {
-    it("Pass request (free)", async () => {
+   it("Pass request (free)", async () => {
 
       let finished_car = await AC.cars(car1);
       assert.isFalse(await AC.IsPassValid({from: car1}), "Pass is valid before request is made");
@@ -210,38 +210,46 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
     Ágoston: *felírja*
     Olivér: "Most ezt felírod?"
     Ágoston: "De most komolyan..."
-
+*/
     it("Multiple trains", async () => {
 
       await AC.LockCrossing(crossing1, {from: train1});
       
-      let lock_response = await AC.LockCrossing(crossing1, {from: train2});
-      console.log(Number(lock_response));
+      let finished_lstate = await web3.utils.toBN(await AC.LockCrossing(crossing1, {from: train2}));
       
-      let bn = BigNumber(lock_response);
-      console.log("Pacal: " + bn);
+      console.log("Pacal 1 " + finished_lstate);
 
-      assert.equal(Number(lock_response), lock_res_ANOTHER_LOCK_IS_ACTIVE,
+      assert.equal(finished_lstate, await web3.utils.toBN(lock_res_ANOTHER_LOCK_IS_ACTIVE),
       "The second train should get an 'another lock is active' response");
-    });*/
+    });
 
     it("Lock requested", async () => {
-      //vonatként lock requesting, hogy van ott kocsi
+      await AC.RequestPass(crossing1, 0, {from: car1});
+      let result = await AC.RequestLock(crossing1, {from: train1});
+
+      //assert.equal(lock_res_LOCK_REQUESTED, result);
     });
 
-    //kéne hozzá a scheduler
-    it("Halt", async () => {
+    it("Halt", async () => {  
       //ha túl sokáig nem jó a lock, a vonatnak meg kell állnia
+
+      await AC.RequestPass(crossing1, 0, {from: car1});
+      await AC.RequestLock(crossing1, {from: train1});
+
+      let train = await AC.trains(train1);
+      train.lock_request_time -= 86400;  
+
     });
     
-    //kéne hozzá a scheduler
     it("Ticket", async () => {
-
-      //ha lejár a kocsi validityje, ticketet ad
+      await AC.RequestPass(crossing1, 0, {from: car1});
+      //the system calls the function below after t amount of time has passed
+      await AC.CheckIfPassIsReleased({from: car1});
+      assert.notEqual(0, await AC.tickets(car1), "the car should have at leas 1 ticket");
     });
 
   });
-  /*
+  
   describe("Other tests", async () => {
 
     it("Crossing free", async () => {
@@ -278,6 +286,6 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
       assert.equal(admin, await AC.getAuthority());
     });
 
-  });*/
+  });
   
 });
