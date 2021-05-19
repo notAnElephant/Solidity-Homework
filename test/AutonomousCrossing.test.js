@@ -189,7 +189,7 @@ contract("AutonomousCrossing", async (accounts) => {
 
     it("Lock requested", async () => {
       await AC.RequestPass(crossing1, 0, {from: car1});
-      let result = await AC.LockCrossing(crossing1, {from: train1});
+      let result = await AC.LockCrossing.call(crossing1, {from: train1});
 
       assert.equal(lock_res_LOCK_REQUESTED, result);
     });
@@ -201,7 +201,7 @@ contract("AutonomousCrossing", async (accounts) => {
       let train = await AC.trains(train1);
       train.lock_request_time -= AC.train_halt_timeout * 2; // Train should halt
 
-      let result = await AC.LockCrossing(crossing1, {from: train1});
+      let result = await AC.LockCrossing.call(crossing1, {from: train1});
 
       assert.equal(lock_res_HALT, result);
 
