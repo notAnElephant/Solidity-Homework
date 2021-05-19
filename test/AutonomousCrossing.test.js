@@ -1,13 +1,8 @@
 /*
 
   TODO
-
   - schedule megoldása
   - dokumentáció
-  - utolsó tesztek megírása
-  - többi TODO megoldása
-  - időpontfoglalás bemutatásra
-  - éjfél a határidő rip
   - konzultáció kérése Kleiniktől
 
 */
@@ -17,16 +12,6 @@ const { assert } = require('chai');
 
 // Import utilities from Test Helpers
 const trassert = require('truffle-assertions');
-
-//const bignum = require('../lib/bignumber.js');
-
-
-// Idk mit csinal, nem merem kitorolni
-/*module.exports = function(deployer) {
-  deployer.deploy(AutonomousCrossing);
-};*/
-
-
 
 // Global enum constants
 const cr_state_LOCKED = 0;
@@ -38,9 +23,8 @@ const lock_res_LOCK_SUCCESSFUL = 1;
 const lock_res_LOCK_REQUESTED = 2;
 const lock_res_HALT = 3;
 
-contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
+contract("AutonomousCrossing", async (accounts) => {
 
-  //const AC = await AutonomousCrossing.deployed();
   let AC;
 
   let admin = accounts[0];
@@ -55,7 +39,6 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
   beforeEach(async () => {
   
     AC = await AutonomousCrossing.new();
-    //AC = await AutonomousCrossing.deployed();
 
     // Registering accounts
     await AC.RegisterCar({from: car1});
@@ -77,12 +60,6 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
     assert.isTrue(await AC.IsTrain(train1));
     assert.isTrue(await AC.IsTrain(train2));
 
-  });
-
-  describe("Testing truffle test environment", async () => {
-    it("karigeri should be alkalmatlan.", async() => {
-      assert.notEqual("Karigeri", "alkalmas");
-    });
   });
 
   describe("Registrations", async () => {
@@ -122,7 +99,6 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
       assert.isTrue(finished_train.isSet, "the train should be set");
       assert.equal(finished_train.id, regtest_train, "the set address should  be the same as the train's address");
     });
-
   });
 
   describe("Permission tests", async () => {
@@ -141,9 +117,7 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
     it("crossing permissions", async() => {      
       // attempting to register a crossing without admin permissions
       trassert.reverts(AC.RegisterCrossing(crossing1, 3, 2, 3600, {from: non_admin}));
-      
     });
-
   });
 
   describe("Combined tests", async () => {
@@ -203,18 +177,9 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
       assert.isTrue(await AC.IsPassValid({from: car3}));
 
     });
-
-    /* TODO fix: solidity return type -> int
-
-    Olivér hozzátette: "Tudjunk már egy kibaszott számot visszaadni"
-    Ágoston: *felírja*
-    Olivér: "Most ezt felírod?"
-    Ágoston: "De most komolyan...
-    Bálint: 'Hold my beer..., it's done"
-    */
     it("Multiple trains", async () => {
 
-      /*await AC.LockCrossing(crossing1, {from: train1});
+      await AC.LockCrossing(crossing1, {from: train1});
       
       const finished_lstate = await AC.LockCrossing.call(crossing1, {from: train2});
       
@@ -222,13 +187,13 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
 
       assert.equal(Number(finished_lstate), lock_res_ANOTHER_LOCK_IS_ACTIVE,
       "The second train should get an 'another lock is active' response");
-    */});
+    });
 
     it("Lock requested", async () => {
       await AC.RequestPass(crossing1, 0, {from: car1});
       let result = await AC.LockCrossing(crossing1, {from: train1});
 
-      //assert.equal(lock_res_LOCK_REQUESTED, result);
+      assert.equal(lock_res_LOCK_REQUESTED, result);
     });
 
     it("Halt", async () => {
@@ -240,7 +205,7 @@ contract("AutonomousCrossing", async /*ez nem volt async*/ (accounts) => {
 
       let result = await AC.LockCrossing(crossing1, {from: train1});
 
-      //assert.equal(lock_res_HALT, result);
+      assert.equal(lock_res_HALT, result);
 
     });
     
