@@ -7,8 +7,8 @@ contract AutonomousCrossing {
     // ####### AUTHORITY ##################################################
 
     address public authority;
-    uint256 validity_period = 15 days;
-    uint256 train_halt_timeout = 30 seconds;
+    uint256 public validity_period = 60 seconds;
+    uint256 public train_halt_timeout = 30 seconds;
 
     // // Ignore warning:
     constructor() public {
@@ -270,7 +270,7 @@ contract AutonomousCrossing {
         return block.timestamp < cars[msg.sender].passValidity;
     }
 
-    function CheckIfPassIsReleased() internal isCar {
+    function CheckIfPassIsReleased() public isCar {
         if(cars[msg.sender].passValidity != 0) //the car still owns their pass, which is considered illegal
         {
             // Do you know why I pulled you over, sir?
